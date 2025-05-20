@@ -29,6 +29,22 @@ func (s *server) SetAddr(ctx context.Context, setAddrRequest *protobuf.SetAddrRe
 	}, nil
 }
 
+func (s *server) AddRoute(ctx context.Context, addRouteRequest *protobuf.AddRouteRequest) (*protobuf.AddRouteResponse, error) {
+	fmt.Printf("%s:%s\n", addRouteRequest.DestinationNetworkSegment, addRouteRequest.Gateway)
+	// ---------------- 核心逻辑 ----------------
+	err := network.AddRoute(addRouteRequest.DestinationNetworkSegment, addRouteRequest.Gateway)
+	if err != nil {
+		fmt.Printf("add route failed: %v\n", err)
+		return &protobuf.AddRouteResponse{
+			Reply: "failed",
+		}, nil
+	}
+	// ---------------- 核心逻辑 ----------------
+	return &protobuf.AddRouteResponse{
+		Reply: "success",
+	}, nil
+}
+
 func main() {
 	err := serverCore()
 	if err != nil {

@@ -1,5 +1,7 @@
 syntax = "proto3"; // 版本声明，使用Protocol Buffers v3版本
 
+option go_package = "zhanghefan123/security_topology/modules/entities/real_entities/raspberrypi_topology/protobuf"; // Go语言包名
+
 package protobuf; // 包名
 
 
@@ -7,7 +9,9 @@ package protobuf; // 包名
 service Interact {
   // SayHello 方法
   rpc SetAddr (SetAddrRequest) returns (SetAddrResponse) {}
+  rpc AddRoute (AddRouteRequest) returns (AddRouteResponse) {}
 }
+
 
 // 请求消息
 message SetAddrRequest {
@@ -17,5 +21,14 @@ message SetAddrRequest {
 
 // 响应消息
 message SetAddrResponse {
+  string reply = 1;
+}
+
+message AddRouteRequest {
+  string destinationNetworkSegment = 1;
+  string gateway = 2;
+}
+
+message AddRouteResponse {
   string reply = 1;
 }

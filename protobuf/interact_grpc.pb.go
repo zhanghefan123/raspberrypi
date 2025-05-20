@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v5.28.2
-// source: services/raspberrypi/interact.proto
+// source: protobuf/interact.proto
 
 package protobuf
 
@@ -19,7 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Interact_SetAddr_FullMethodName = "/protobuf.Interact/SetAddr"
+	Interact_SetAddr_FullMethodName  = "/protobuf.Interact/SetAddr"
+	Interact_AddRoute_FullMethodName = "/protobuf.Interact/AddRoute"
 )
 
 // InteractClient is the client API for Interact service.
@@ -30,6 +31,7 @@ const (
 type InteractClient interface {
 	// SayHello 方法
 	SetAddr(ctx context.Context, in *SetAddrRequest, opts ...grpc.CallOption) (*SetAddrResponse, error)
+	AddRoute(ctx context.Context, in *AddRouteRequest, opts ...grpc.CallOption) (*AddRouteResponse, error)
 }
 
 type interactClient struct {
@@ -50,6 +52,16 @@ func (c *interactClient) SetAddr(ctx context.Context, in *SetAddrRequest, opts .
 	return out, nil
 }
 
+func (c *interactClient) AddRoute(ctx context.Context, in *AddRouteRequest, opts ...grpc.CallOption) (*AddRouteResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AddRouteResponse)
+	err := c.cc.Invoke(ctx, Interact_AddRoute_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // InteractServer is the server API for Interact service.
 // All implementations must embed UnimplementedInteractServer
 // for forward compatibility.
@@ -58,6 +70,7 @@ func (c *interactClient) SetAddr(ctx context.Context, in *SetAddrRequest, opts .
 type InteractServer interface {
 	// SayHello 方法
 	SetAddr(context.Context, *SetAddrRequest) (*SetAddrResponse, error)
+	AddRoute(context.Context, *AddRouteRequest) (*AddRouteResponse, error)
 	mustEmbedUnimplementedInteractServer()
 }
 
@@ -70,6 +83,9 @@ type UnimplementedInteractServer struct{}
 
 func (UnimplementedInteractServer) SetAddr(context.Context, *SetAddrRequest) (*SetAddrResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetAddr not implemented")
+}
+func (UnimplementedInteractServer) AddRoute(context.Context, *AddRouteRequest) (*AddRouteResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddRoute not implemented")
 }
 func (UnimplementedInteractServer) mustEmbedUnimplementedInteractServer() {}
 func (UnimplementedInteractServer) testEmbeddedByValue()                  {}
@@ -110,6 +126,24 @@ func _Interact_SetAddr_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Interact_AddRoute_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddRouteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(InteractServer).AddRoute(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Interact_AddRoute_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(InteractServer).AddRoute(ctx, req.(*AddRouteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Interact_ServiceDesc is the grpc.ServiceDesc for Interact service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -121,7 +155,11 @@ var Interact_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "SetAddr",
 			Handler:    _Interact_SetAddr_Handler,
 		},
+		{
+			MethodName: "AddRoute",
+			Handler:    _Interact_AddRoute_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "services/raspberrypi/interact.proto",
+	Metadata: "protobuf/interact.proto",
 }
