@@ -19,8 +19,10 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Interact_SetAddr_FullMethodName  = "/protobuf.Interact/SetAddr"
-	Interact_AddRoute_FullMethodName = "/protobuf.Interact/AddRoute"
+	Interact_SetAddr_FullMethodName      = "/protobuf.Interact/SetAddr"
+	Interact_AddRoute_FullMethodName     = "/protobuf.Interact/AddRoute"
+	Interact_TransmitFile_FullMethodName = "/protobuf.Interact/TransmitFile"
+	Interact_SetEnv_FullMethodName       = "/protobuf.Interact/SetEnv"
 )
 
 // InteractClient is the client API for Interact service.
@@ -30,8 +32,10 @@ const (
 // 定义服务
 type InteractClient interface {
 	// SayHello 方法
-	SetAddr(ctx context.Context, in *SetAddrRequest, opts ...grpc.CallOption) (*SetAddrResponse, error)
-	AddRoute(ctx context.Context, in *AddRouteRequest, opts ...grpc.CallOption) (*AddRouteResponse, error)
+	SetAddr(ctx context.Context, in *SetAddrRequest, opts ...grpc.CallOption) (*NormalResponse, error)
+	AddRoute(ctx context.Context, in *AddRouteRequest, opts ...grpc.CallOption) (*NormalResponse, error)
+	TransmitFile(ctx context.Context, in *TransmitFileRequest, opts ...grpc.CallOption) (*NormalResponse, error)
+	SetEnv(ctx context.Context, in *SetEnvRequest, opts ...grpc.CallOption) (*NormalResponse, error)
 }
 
 type interactClient struct {
@@ -42,9 +46,9 @@ func NewInteractClient(cc grpc.ClientConnInterface) InteractClient {
 	return &interactClient{cc}
 }
 
-func (c *interactClient) SetAddr(ctx context.Context, in *SetAddrRequest, opts ...grpc.CallOption) (*SetAddrResponse, error) {
+func (c *interactClient) SetAddr(ctx context.Context, in *SetAddrRequest, opts ...grpc.CallOption) (*NormalResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(SetAddrResponse)
+	out := new(NormalResponse)
 	err := c.cc.Invoke(ctx, Interact_SetAddr_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -52,10 +56,30 @@ func (c *interactClient) SetAddr(ctx context.Context, in *SetAddrRequest, opts .
 	return out, nil
 }
 
-func (c *interactClient) AddRoute(ctx context.Context, in *AddRouteRequest, opts ...grpc.CallOption) (*AddRouteResponse, error) {
+func (c *interactClient) AddRoute(ctx context.Context, in *AddRouteRequest, opts ...grpc.CallOption) (*NormalResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AddRouteResponse)
+	out := new(NormalResponse)
 	err := c.cc.Invoke(ctx, Interact_AddRoute_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *interactClient) TransmitFile(ctx context.Context, in *TransmitFileRequest, opts ...grpc.CallOption) (*NormalResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(NormalResponse)
+	err := c.cc.Invoke(ctx, Interact_TransmitFile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *interactClient) SetEnv(ctx context.Context, in *SetEnvRequest, opts ...grpc.CallOption) (*NormalResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(NormalResponse)
+	err := c.cc.Invoke(ctx, Interact_SetEnv_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -69,8 +93,10 @@ func (c *interactClient) AddRoute(ctx context.Context, in *AddRouteRequest, opts
 // 定义服务
 type InteractServer interface {
 	// SayHello 方法
-	SetAddr(context.Context, *SetAddrRequest) (*SetAddrResponse, error)
-	AddRoute(context.Context, *AddRouteRequest) (*AddRouteResponse, error)
+	SetAddr(context.Context, *SetAddrRequest) (*NormalResponse, error)
+	AddRoute(context.Context, *AddRouteRequest) (*NormalResponse, error)
+	TransmitFile(context.Context, *TransmitFileRequest) (*NormalResponse, error)
+	SetEnv(context.Context, *SetEnvRequest) (*NormalResponse, error)
 	mustEmbedUnimplementedInteractServer()
 }
 
@@ -81,11 +107,17 @@ type InteractServer interface {
 // pointer dereference when methods are called.
 type UnimplementedInteractServer struct{}
 
-func (UnimplementedInteractServer) SetAddr(context.Context, *SetAddrRequest) (*SetAddrResponse, error) {
+func (UnimplementedInteractServer) SetAddr(context.Context, *SetAddrRequest) (*NormalResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetAddr not implemented")
 }
-func (UnimplementedInteractServer) AddRoute(context.Context, *AddRouteRequest) (*AddRouteResponse, error) {
+func (UnimplementedInteractServer) AddRoute(context.Context, *AddRouteRequest) (*NormalResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddRoute not implemented")
+}
+func (UnimplementedInteractServer) TransmitFile(context.Context, *TransmitFileRequest) (*NormalResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TransmitFile not implemented")
+}
+func (UnimplementedInteractServer) SetEnv(context.Context, *SetEnvRequest) (*NormalResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetEnv not implemented")
 }
 func (UnimplementedInteractServer) mustEmbedUnimplementedInteractServer() {}
 func (UnimplementedInteractServer) testEmbeddedByValue()                  {}
@@ -144,6 +176,42 @@ func _Interact_AddRoute_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Interact_TransmitFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TransmitFileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(InteractServer).TransmitFile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Interact_TransmitFile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(InteractServer).TransmitFile(ctx, req.(*TransmitFileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Interact_SetEnv_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetEnvRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(InteractServer).SetEnv(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Interact_SetEnv_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(InteractServer).SetEnv(ctx, req.(*SetEnvRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Interact_ServiceDesc is the grpc.ServiceDesc for Interact service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -158,6 +226,14 @@ var Interact_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AddRoute",
 			Handler:    _Interact_AddRoute_Handler,
+		},
+		{
+			MethodName: "TransmitFile",
+			Handler:    _Interact_TransmitFile_Handler,
+		},
+		{
+			MethodName: "SetEnv",
+			Handler:    _Interact_SetEnv_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

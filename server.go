@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"google.golang.org/grpc"
 	"net"
+	"os"
+	"path"
 	"raspberrypi/protobuf"
+	"raspberrypi/utils/file"
 	"raspberrypi/utils/network"
 )
 
@@ -13,34 +16,59 @@ type server struct {
 	protobuf.UnimplementedInteractServer
 }
 
-func (s *server) SetAddr(ctx context.Context, setAddrRequest *protobuf.SetAddrRequest) (*protobuf.SetAddrResponse, error) {
+func (s *server) SetAddr(ctx context.Context, setAddrRequest *protobuf.SetAddrRequest) (*protobuf.NormalResponse, error) {
 	fmt.Printf("%s:%s\n", setAddrRequest.InterfaceName, setAddrRequest.InterfaceAddr)
 	// ---------------- 核心逻辑 ----------------
 	err := network.SetAddr(setAddrRequest.InterfaceName, setAddrRequest.InterfaceAddr)
 	if err != nil {
 		fmt.Printf("set addr failed: %v\n", err)
-		return &protobuf.SetAddrResponse{
+		return &protobuf.NormalResponse{
 			Reply: "failed",
 		}, nil
 	}
 	// ---------------- 核心逻辑 ----------------
-	return &protobuf.SetAddrResponse{
+	return &protobuf.NormalResponse{
 		Reply: "success",
 	}, nil
 }
 
-func (s *server) AddRoute(ctx context.Context, addRouteRequest *protobuf.AddRouteRequest) (*protobuf.AddRouteResponse, error) {
+func (s *server) AddRoute(ctx context.Context, addRouteRequest *protobuf.AddRouteRequest) (*protobuf.NormalResponse, error) {
 	fmt.Printf("%s:%s\n", addRouteRequest.DestinationNetworkSegment, addRouteRequest.Gateway)
 	// ---------------- 核心逻辑 ----------------
 	err := network.AddRoute(addRouteRequest.DestinationNetworkSegment, addRouteRequest.Gateway)
 	if err != nil {
 		fmt.Printf("add route failed: %v\n", err)
-		return &protobuf.AddRouteResponse{
+		return &protobuf.NormalResponse{
 			Reply: "failed",
 		}, nil
 	}
 	// ---------------- 核心逻辑 ----------------
-	return &protobuf.AddRouteResponse{
+	return &protobuf.NormalResponse{
+		Reply: "success",
+	}, nil
+}
+
+func (s *server) TransmitFile(ctx context.Context, transmitFileRequest *protobuf.TransmitFileRequest) (*protobuf.NormalResponse, error) {
+	fmt.Println("transmit file")
+	// ---------------- 核心逻辑 ----------------
+	directory := path.Dir(transmitFileRequest.DestinationPath)
+	err := os.MkdirAll(directory, os.ModePerm)
+	if err != nil {
+		fmt.Printf("create directory failed: %v\n", err)
+		return &protobuf.NormalResponse{
+			Reply: "failed",
+		}, nil
+	}
+	err = file.WriteStringIntoFile(transmitFileRequest.DestinationPath, transmitFileRequest.Content)
+	if err != nil {
+		fmt.Printf("write file failed: %v\n", err)
+		return &protobuf.NormalResponse{
+			Reply: "failed",
+		}, nil
+	}
+	fmt.Printf("write file %s success\n", transmitFileRequest.DestinationPath)
+	// ---------------- 核心逻辑 ----------------
+	return &protobuf.NormalResponse{
 		Reply: "success",
 	}, nil
 }

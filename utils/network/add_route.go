@@ -3,7 +3,6 @@ package network
 import (
 	"fmt"
 	"github.com/vishvananda/netlink"
-	"net"
 )
 
 func AddRoute(DestinationNetworkSegment, Gateway string) error {
@@ -14,14 +13,14 @@ func AddRoute(DestinationNetworkSegment, Gateway string) error {
 		return fmt.Errorf("failed to parse network %s: %v", DestinationNetworkSegment, err)
 	}
 	// 2. 进行网关的解析
-	gatewayIP := net.ParseIP(Gateway)
-	if gatewayIP == nil {
+	gatewayIP, err := netlink.ParseAddr(Gateway)
+	if err != nil {
 		return fmt.Errorf("failed to parse gateway %s: %v", Gateway, err)
 	}
 	// 3. 创建路由对象
 	route := &netlink.Route{
 		Dst: network,
-		Gw:  gatewayIP,
+		Gw:  gatewayIP.IP,
 	}
 	err = netlink.RouteAdd(route)
 	if err != nil {
