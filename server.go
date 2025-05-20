@@ -6,6 +6,7 @@ import (
 	"google.golang.org/grpc"
 	"net"
 	"raspberrypi/protobuf"
+	"raspberrypi/utils/network"
 )
 
 type server struct {
@@ -14,6 +15,15 @@ type server struct {
 
 func (s *server) SetAddr(ctx context.Context, setAddrRequest *protobuf.SetAddrRequest) (*protobuf.SetAddrResponse, error) {
 	fmt.Printf("%s:%s\n", setAddrRequest.InterfaceName, setAddrRequest.InterfaceAddr)
+	// ---------------- 核心逻辑 ----------------
+	err := network.SetAddr(setAddrRequest.InterfaceName, setAddrRequest.InterfaceAddr)
+	if err != nil {
+		fmt.Printf("set addr failed: %v\n", err)
+		return &protobuf.SetAddrResponse{
+			Reply: "failed",
+		}, nil
+	}
+	// ---------------- 核心逻辑 ----------------
 	return &protobuf.SetAddrResponse{
 		Reply: "success",
 	}, nil
