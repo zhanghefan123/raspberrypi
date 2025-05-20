@@ -38,6 +38,6 @@ message TransmitFileRequest {
 
 // 设置环境变量消息
 message SetEnvRequest {
-  string envField = 1;
-  string envValue = 2;
+  repeated string envFields = 1;
+  repeated string envValues = 2;
 }

@@ -73,6 +73,25 @@ func (s *server) TransmitFile(ctx context.Context, transmitFileRequest *protobuf
 	}, nil
 }
 
+func (s *server) SetEnv(ctx context.Context, setEnvRequest *protobuf.SetEnvRequest) (*protobuf.NormalResponse, error) {
+	fmt.Println("set envs")
+	// ---------------- 核心逻辑 ----------------
+	for index, envField := range setEnvRequest.EnvFields {
+		envValue := setEnvRequest.EnvValues[index]
+		fmt.Printf("%d: %s=%s\n", index, envField, envValue)
+		err := os.Setenv(envField, envValue)
+		if err != nil {
+			return &protobuf.NormalResponse{
+				Reply: "failed",
+			}, nil
+		}
+	}
+	// ---------------- 核心逻辑 ----------------
+	return &protobuf.NormalResponse{
+		Reply: "success",
+	}, nil
+}
+
 func main() {
 	err := serverCore()
 	if err != nil {
