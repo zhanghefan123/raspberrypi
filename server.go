@@ -8,6 +8,8 @@ import (
 	"os"
 	"path"
 	"raspberrypi/protobuf"
+	"raspberrypi/utils/dir"
+	"raspberrypi/utils/execute"
 	"raspberrypi/utils/file"
 	"raspberrypi/utils/network"
 )
@@ -85,6 +87,30 @@ func (s *server) SetEnv(ctx context.Context, setEnvRequest *protobuf.SetEnvReque
 				Reply: "failed",
 			}, nil
 		}
+	}
+	// ---------------- 核心逻辑 ----------------
+	return &protobuf.NormalResponse{
+		Reply: "success",
+	}, nil
+}
+
+func (s *server) LoadKernelInfo(ctx context.Context, loadKernelInfoRequest *protobuf.LoadKernelInfoRequest) (*protobuf.NormalResponse, error) {
+	fmt.Println("load kernel info")
+	// ---------------- 核心逻辑 ----------------
+	// 调用 python 即可
+	err := dir.WithContextManager("/home/zeusnet/Projects/lir_node/lir_node", func() error {
+		err := execute.Command("/home/zeusnet/miniconda3/envs/lir/bin/python", []string{"start.py", "raspberrypi"})
+		if err != nil {
+			fmt.Printf("execute python failed: %v\n", err)
+			return fmt.Errorf("execute python failed: %v", err)
+		}
+		return nil
+	})
+	if err != nil {
+		fmt.Printf("load kernel info failed: %v\n", err)
+		return &protobuf.NormalResponse{
+			Reply: "failed",
+		}, nil
 	}
 	// ---------------- 核心逻辑 ----------------
 	return &protobuf.NormalResponse{
