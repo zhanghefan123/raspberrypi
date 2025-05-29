@@ -29,7 +29,7 @@ func (s *server) SetAddr(ctx context.Context, setAddrRequest *protobuf.SetAddrRe
 		}, fmt.Errorf("set no efficient failed: %v", err)
 	}
 	// 2. 进行地址的设置
-	err = network.SetAddr(setAddrRequest.InterfaceName, setAddrRequest.InterfaceAddr)
+	err = network.SetAddr(setAddrRequest.InterfaceName, setAddrRequest.InterfaceAddr, setAddrRequest.AddrType)
 	if err != nil {
 		fmt.Printf("set addr failed: %v\n", err)
 		return &protobuf.NormalResponse{
@@ -49,8 +49,8 @@ func (s *server) AddRoute(ctx context.Context, addRouteRequest *protobuf.AddRout
 	if err != nil {
 		fmt.Printf("add route failed: %v\n", err)
 		return &protobuf.NormalResponse{
-			Reply: "failed",
-		}, fmt.Errorf("add route failed: %v", err)
+			Reply: "route already exists",
+		}, nil
 	}
 	// ---------------- 核心逻辑 ----------------
 	return &protobuf.NormalResponse{
@@ -97,6 +97,24 @@ func (s *server) SetEnv(ctx context.Context, setEnvRequest *protobuf.SetEnvReque
 		return &protobuf.NormalResponse{
 			Reply: "failed",
 		}, fmt.Errorf("write envs file failed: %v", err)
+	}
+	// ---------------- 核心逻辑 ----------------
+	return &protobuf.NormalResponse{
+		Reply: "success",
+	}, nil
+}
+
+func (s *server) SetSysctls(ctx context.Context, setSysctlsRequest *protobuf.SetSysctlsRequest) (*protobuf.NormalResponse, error) {
+	fmt.Println("set sysctls")
+	// ---------------- 核心逻辑 ----------------
+	for index, sysctlField := range setSysctlsRequest.SysctlFields {
+		err := execute.Command("sysctl", []string{"-w", fmt.Sprintf("%s=%d", sysctlField, setSysctlsRequest.SysctlValues[index])})
+		if err != nil {
+			fmt.Printf("set sysctl %s failed: %v\n", sysctlField, err)
+			return &protobuf.NormalResponse{
+				Reply: "failed",
+			}, fmt.Errorf("set sysctl %s failed: %v", sysctlField, err)
+		}
 	}
 	// ---------------- 核心逻辑 ----------------
 	return &protobuf.NormalResponse{
