@@ -14,12 +14,13 @@ func SetAddr(interfaceName string, interfaceCidrAddr string) error {
 	}
 	addrs, err := netlink.AddrList(networkIntf, netlink.FAMILY_V4)
 	for _, addr := range addrs {
-		if addr.IP.String() == interfaceCidrAddr {
+		if addr.IP.String() == interfaceCidrAddr[:len(interfaceCidrAddr)-3] {
 			fmt.Println("address already exists")
 			return nil
 		}
 	}
 	ipv4, err := netlink.ParseAddr(interfaceCidrAddr)
+
 	if err != nil {
 		return fmt.Errorf("failed to parse address %s: %v", interfaceCidrAddr, err)
 	}

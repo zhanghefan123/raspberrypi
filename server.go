@@ -21,12 +21,20 @@ type server struct {
 func (s *server) SetAddr(ctx context.Context, setAddrRequest *protobuf.SetAddrRequest) (*protobuf.NormalResponse, error) {
 	fmt.Printf("%s:%s\n", setAddrRequest.InterfaceName, setAddrRequest.InterfaceAddr)
 	// ---------------- 核心逻辑 ----------------
-	err := network.SetAddr(setAddrRequest.InterfaceName, setAddrRequest.InterfaceAddr)
+	// 1. 设置非节能模式
+	err := network.SetNoManagement(setAddrRequest.InterfaceName)
+	if err != nil {
+		return &protobuf.NormalResponse{
+			Reply: "failed",
+		}, fmt.Errorf("set no efficient failed: %v", err)
+	}
+	// 2. 进行地址的设置
+	err = network.SetAddr(setAddrRequest.InterfaceName, setAddrRequest.InterfaceAddr)
 	if err != nil {
 		fmt.Printf("set addr failed: %v\n", err)
 		return &protobuf.NormalResponse{
 			Reply: "failed",
-		}, nil
+		}, fmt.Errorf("set addr failed: %v", err)
 	}
 	// ---------------- 核心逻辑 ----------------
 	return &protobuf.NormalResponse{
@@ -35,14 +43,14 @@ func (s *server) SetAddr(ctx context.Context, setAddrRequest *protobuf.SetAddrRe
 }
 
 func (s *server) AddRoute(ctx context.Context, addRouteRequest *protobuf.AddRouteRequest) (*protobuf.NormalResponse, error) {
-	fmt.Printf("%s:%s\n", addRouteRequest.DestinationNetworkSegment, addRouteRequest.Gateway)
+	fmt.Printf("%s:%s\n", addRouteRequest.DestinationNetworkSegment, addRouteRequest.Gateway[:len(addRouteRequest.Gateway)-3])
 	// ---------------- 核心逻辑 ----------------
 	err := network.AddRoute(addRouteRequest.DestinationNetworkSegment, addRouteRequest.Gateway)
 	if err != nil {
 		fmt.Printf("add route failed: %v\n", err)
 		return &protobuf.NormalResponse{
 			Reply: "failed",
-		}, nil
+		}, fmt.Errorf("add route failed: %v", err)
 	}
 	// ---------------- 核心逻辑 ----------------
 	return &protobuf.NormalResponse{
@@ -59,14 +67,14 @@ func (s *server) TransmitFile(ctx context.Context, transmitFileRequest *protobuf
 		fmt.Printf("create directory failed: %v\n", err)
 		return &protobuf.NormalResponse{
 			Reply: "failed",
-		}, nil
+		}, fmt.Errorf("create directory failed: %v", err)
 	}
 	err = file.WriteStringIntoFile(transmitFileRequest.DestinationPath, transmitFileRequest.Content)
 	if err != nil {
 		fmt.Printf("write file failed: %v\n", err)
 		return &protobuf.NormalResponse{
 			Reply: "failed",
-		}, nil
+		}, fmt.Errorf("write file failed: %v", err)
 	}
 	fmt.Printf("write file %s success\n", transmitFileRequest.DestinationPath)
 	// ---------------- 核心逻辑 ----------------
@@ -77,16 +85,18 @@ func (s *server) TransmitFile(ctx context.Context, transmitFileRequest *protobuf
 
 func (s *server) SetEnv(ctx context.Context, setEnvRequest *protobuf.SetEnvRequest) (*protobuf.NormalResponse, error) {
 	fmt.Println("set envs")
+	finalString := ""
 	// ---------------- 核心逻辑 ----------------
 	for index, envField := range setEnvRequest.EnvFields {
 		envValue := setEnvRequest.EnvValues[index]
-		fmt.Printf("%d: %s=%s\n", index, envField, envValue)
-		err := os.Setenv(envField, envValue)
-		if err != nil {
-			return &protobuf.NormalResponse{
-				Reply: "failed",
-			}, nil
-		}
+		finalString += fmt.Sprintf("%s=%s\n", envField, envValue)
+	}
+	err := file.WriteStringIntoFile("/home/zeusnet/Projects/lir_node/lir_node/envs.txt", finalString)
+	if err != nil {
+		fmt.Printf("write envs file failed: %v\n", err)
+		return &protobuf.NormalResponse{
+			Reply: "failed",
+		}, fmt.Errorf("write envs file failed: %v", err)
 	}
 	// ---------------- 核心逻辑 ----------------
 	return &protobuf.NormalResponse{
@@ -110,7 +120,7 @@ func (s *server) LoadKernelInfo(ctx context.Context, loadKernelInfoRequest *prot
 		fmt.Printf("load kernel info failed: %v\n", err)
 		return &protobuf.NormalResponse{
 			Reply: "failed",
-		}, nil
+		}, fmt.Errorf("load kernel info failed: %v", err)
 	}
 	// ---------------- 核心逻辑 ----------------
 	return &protobuf.NormalResponse{
